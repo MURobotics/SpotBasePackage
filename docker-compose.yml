@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  spot-follow:
+    build:
+      dockerfile: Dockerfile
+      context: ./spot-follow
+    env_file: secrets/spot_account.env
+    stdin_open: true # docker run -i
+    tty: true # docker run -t
