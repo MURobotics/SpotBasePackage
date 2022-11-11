@@ -6,5 +6,6 @@ services:
       dockerfile: Dockerfile
       context: ./spot-follow
     env_file: secrets/spot_account.env
+    #platform: linux/amd64
     stdin_open: true # docker run -i
     tty: true # docker run -t
