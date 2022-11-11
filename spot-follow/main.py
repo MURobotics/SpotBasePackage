@@ -86,8 +86,8 @@ def hello_spot(config):
 
             #test code
             print("Running test code")
-            movements.walk(1.0, Direction.FORWARDS, duration=2.0)
-            movements.strafe(0.7, Direction.RIGHT, duration=0.5)
+            movements.walk(1.0, Direction.FORWARDS, duration=1.5)
+            #movements.strafe(0.4, Direction.RIGHT, duration=0.5)
             print("Test code end")
 
             # Capture an image.
