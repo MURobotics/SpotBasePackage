@@ -16,6 +16,8 @@ from bosdyn.client.robot_command import RobotCommandBuilder, RobotCommandClient,
 
 class Robot:
 
+    #   -----   Startup commands    -----
+
     def __init__(self, argv):
         parser = argparse.ArgumentParser()
         bosdyn.client.util.add_common_arguments(parser)
@@ -39,26 +41,21 @@ class Robot:
         self.lease = self.lease_client.acquire()
 
     def wake(self):
-            self.log("Powering on robot... This may take several seconds.")
-            self.robot.power_on(timeout_sec=20)
-            assert self.robot.is_powered_on(), "Robot power on failed."
-            self.log("Robot powered on.")
-            self.log("Commanding robot to stand...")
-            self.command_client = self.robot.ensure_client(RobotCommandClient.default_service_name)
-            blocking_stand(self.command_client, timeout_sec=10)
-            self.log("Robot standing.")
-            time.sleep(3)
+        self.log("Powering on robot... This may take several seconds.")
+        self.robot.power_on(timeout_sec=20)
+        assert self.robot.is_powered_on(), "Robot power on failed."
+        self.log("Robot powered on.")
+        self.log("Commanding robot to stand...")
+        self.command_client = self.robot.ensure_client(RobotCommandClient.default_service_name)
+        blocking_stand(self.command_client, timeout_sec=10)
+        self.log("Robot standing.")
+        time.sleep(3)
 
 
     def sleep(self):
-            self.robot.power_off(cut_immediately=False, timeout_sec=20)
-            assert not self.robot.is_powered_on(), "Robot power off failed."
-            self.log("Robot safely powered off.")
-
-    def stand(self, height):
-        cmd = RobotCommandBuilder.synchro_stand_command(body_height=height)
-        self.command_client.robot_command(cmd)
-        time.sleep(3)
+        self.robot.power_off(cut_immediately=False, timeout_sec=20)
+        assert not self.robot.is_powered_on(), "Robot power off failed."
+        self.log("Robot safely powered off.")
 
     def log(self, info):#, *args="", log_type=0):
         self.robot.logger.info(info)
@@ -78,3 +75,12 @@ class Robot:
 
     def keepLeaseAlive(self):
         return bosdyn.client.lease.LeaseKeepAlive(self.lease_client)
+
+        
+
+    #   -----   Movement Commands   -----
+
+    def stand(self, height, delay=3):
+        cmd = RobotCommandBuilder.synchro_stand_command(body_height=height)
+        self.command_client.robot_command(cmd)
+        time.sleep(delay)
