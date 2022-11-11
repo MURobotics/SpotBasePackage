@@ -16,6 +16,7 @@ from bosdyn.client.robot_command import RobotCommandBuilder, RobotCommandClient,
 
 class Robot:
 
+    # init() initializes starting values and uses the run() function to connect to spot
     def __init__(self, argv):
         parser = argparse.ArgumentParser()
         bosdyn.client.util.add_common_arguments(parser)
@@ -27,6 +28,10 @@ class Robot:
         except Exception as exc:
             self.err("Hello, Spot threw an exception: %r", exc)
 
+
+    # run() connects to the spot robot and sets up time sync
+    # If there are issues connecting, ensure the spot_account.env file in the secrets folder is properly formatted with correct credentials
+    # run() is run automatically upon initializing the Robot class
     def run(self, config):
         bosdyn.client.util.setup_logging(config.verbose)  
         self.sdk = bosdyn.client.create_standard_sdk('HelloSpotClient')
@@ -38,6 +43,8 @@ class Robot:
         self.lease_client = self.robot.ensure_client(bosdyn.client.lease.LeaseClient.default_service_name)
         self.lease = self.lease_client.acquire()
 
+    # wake() powers on the robot and causes it to stand
+    # wake() must be run before any other commands
     def wake(self):
             self.log("Powering on robot... This may take several seconds.")
             self.robot.power_on(timeout_sec=20)
@@ -49,12 +56,15 @@ class Robot:
             self.log("Robot standing.")
             time.sleep(3)
 
-
+    # sleep() causes the robot to power off.
+    # run sleep() at the end of every program
     def sleep(self):
             self.robot.power_off(cut_immediately=False, timeout_sec=20)
             assert not self.robot.is_powered_on(), "Robot power off failed."
             self.log("Robot safely powered off.")
 
+    # stand() causes the robot to stand at a given height
+    # height is in meters
     def stand(self, height):
         cmd = RobotCommandBuilder.synchro_stand_command(body_height=height)
         self.command_client.robot_command(cmd)
