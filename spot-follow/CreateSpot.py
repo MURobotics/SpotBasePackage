@@ -70,6 +70,9 @@ class Robot:
     def err(self, info, *args):
         self.robot.logger.error(info, args)
 
+    def getCommandClient(self):
+        return self.command_client
+
     def getLease(self):
         return self.lease_client.return_lease(self.lease)
 
