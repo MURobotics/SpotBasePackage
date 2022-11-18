@@ -7,6 +7,7 @@ import bosdyn.client
 import bosdyn.client.lease
 import bosdyn.client.util
 import bosdyn.geometry
+from bosdyn.geometry import EulerZXY
 
 import logging
 
@@ -123,13 +124,29 @@ class Robot:
 
     # stand() causes the robot to stand at a given height
     # height is in meters
-    def stand(self, height):
+    def stand(self, height = 0.0) -> None:
         self.execute_command(
             RobotCommandBuilder.synchro_stand_command(body_height=height)
         )
+
+    #sit() causes the robot to sit
+    def sit(self) -> None:
+        self.execute_command(
+            RobotCommandBuilder.synchro_sit_command()
+        )
+
+    #Changes the orientation of the robot with respect to its geometric center
+    #Also needs a height as it is run in the stand command
+    def rotate_body(self, height = 0.0, yaw=0.0, roll=0.0, pitch=0.0) -> None:
+        self.execute_command(
+            RobotCommandBuilder.synchro_sit_command(
+                body_height = height,
+                footprint_R_body = EulerZXY(yaw=yaw, roll=roll, pitch=pitch)
+            )
+        )
     
     #Runs a synchro velocity command
-    def move_velocity(self, v_x=0.0, v_y=0.0, v_rot=0.0, duration=0.0):
+    def move_velocity(self, v_x=0.0, v_y=0.0, v_rot=0.0, duration=0.0) -> None:
         print(f"velocity {v_y}")
         self.execute_command(
             RobotCommandBuilder.synchro_velocity_command(
@@ -142,7 +159,7 @@ class Robot:
     
     #Runs a synchro trajectory command
     #heading in radians, postion relative to robot frame
-    def move_position(self, x_pos=0.0, y_pos=0.0, heading=0.0, duration=0.0):
+    def move_position(self, x_pos=0.0, y_pos=0.0, heading=0.0, duration=0.0) -> None:
         self.execute_command(
             RobotCommandBuilder.synchro_trajectory_command_in_body_frame(
                 goal_x_rt_body = x_pos, 
@@ -152,8 +169,22 @@ class Robot:
             get_command_duration(duration)
         )
 
+    #Given an 2d array of positions in the format [x_pos, y_pos, heading, duration]
+    #the robot will go through those points
+    def move_on_path(self, positions : float = None):
+        for position in positions:
+            self.execute_command(
+            RobotCommandBuilder.synchro_trajectory_command_in_body_frame(
+                goal_x_rt_body = position[0], 
+                goal_y_rt_body = position[1], 
+                goal_heading_rt_body = position[2]
+            ),
+            get_command_duration(position[3])
+        )
+
+
     #Moves left or right
-    def strafe(self, speed: float, direction: Direction, duration=0.0):
+    def strafe(self, speed: float, direction: Direction, duration=0.0) -> None:
         if (not (direction is Direction.LEFT or direction is Direction.RIGHT)):
             print("No strafing?")
             raise Exception("Invalid direction for strafing")
@@ -162,7 +193,7 @@ class Robot:
         self.move_velocity(0, speed, 0, duration)
 
     #Moves forwards or backwards
-    def walk(self, speed: float, direction: Direction, duration=0.0):
+    def walk(self, speed: float, direction: Direction, duration=0.0) -> None:
         if (not (direction is Direction.FORWARDS or direction is Direction.BACKWARDS)):
             print("No walking?")
             raise Exception("Invalid direction for walking")
@@ -171,7 +202,7 @@ class Robot:
         self.move_velocity(speed, 0, 0, duration)
 
     #Rotates counterclockwise or clockwise
-    def rotate(self, rot_speed: float, rot_direction: RotationDirection, duration = 0.0):
+    def rotate(self, rot_speed: float, rot_direction: RotationDirection, duration = 0.0) -> None:
         rot_speed = rot_speed if rot_direction is RotationDirection.COUNTERCLOCKWISE else -rot_speed
         self.move_velocity(0, 0, rot_speed, duration)
 
