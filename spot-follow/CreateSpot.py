@@ -101,8 +101,6 @@ class Robot:
     def keepLeaseAlive(self):
         return bosdyn.client.lease.LeaseKeepAlive(self.lease_client)
 
-        
-
     #   -----   Movement Commands   -----
 
     #This functions runs all commands
