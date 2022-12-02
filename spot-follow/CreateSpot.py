@@ -7,7 +7,8 @@ import bosdyn.client
 import bosdyn.client.lease
 import bosdyn.client.util
 import bosdyn.geometry
-import spotutil as util
+import SpotUtil as util
+from SpotUtil import Direction, RotationDirection
 
 from bosdyn.client.image import ImageClient
 from bosdyn.client.robot_command import RobotCommandBuilder, RobotCommandClient, blocking_stand
@@ -89,11 +90,11 @@ class Robot:
     def setDefaultDelay(self, delay):
         self.default_delay = delay
 
-    #   -----   Movement Commands   -----
+    #   -----   Movement Commands   -----   #
 
     def command(self, cmd, delay=None, duration=None):
         self.command_client.robot_command(cmd, duration)
-        self.delay(delay);
+        self.delay(delay)
 
     # delay() is delay between commands. Defaults to default_delay value [set with setDefaultDelay(). default is 3]
     def delay(self, delay=None):
@@ -114,6 +115,7 @@ class Robot:
             RobotCommandBuilder.synchro_sit_command(),
             delay
         )
+
     # pose_body() twists the robot's torso without moving the legs
     # yaw, roll, and pitch are measured in radians
     def pose_body(self, yaw=0.0, roll=0.0, pitch=0.0, delay=None):
@@ -131,6 +133,53 @@ class Robot:
             delay,
             util.get_command_duration(duration)
         )
+
+    #Runs a synchro velocity command
+    def move_velocity(self, v_x=0.0, v_y=0.0, v_rot=0.0, duration=0.0):
+        print(f"{time.time()}, {util.get_command_duration(3.0)}")
+        self.command(
+            RobotCommandBuilder.synchro_velocity_command(
+                v_x=v_x,
+                v_y=v_y,
+                v_rot=v_rot
+            ),
+            duration = util.get_command_duration(duration)
+        )
+    
+    #Runs a synchro trajectory command
+    #heading in radians, postion relative to robot frame
+    def move_position(self, x_pos=0.0, y_pos=0.0, heading=0.0, duration=0.0):
+        self.command(
+            RobotCommandBuilder.synchro_trajectory_command_in_body_frame(
+                goal_x_rt_body = x_pos, 
+                goal_y_rt_body = y_pos, 
+                goal_heading_rt_body = heading
+            ),
+            duration = util.get_command_duration(duration)
+        )
+
+    #Moves left or right
+    def strafe(self, speed: float, direction: Direction, duration=0.0):
+        if (not (direction is Direction.LEFT or direction is Direction.RIGHT)):
+            print("No strafing?")
+            raise Exception("Invalid direction for strafing")
+
+        speed = speed if direction is Direction.LEFT else -speed
+        self.move_velocity(0, speed, 0, duration)
+
+    #Moves forwards or backwards
+    def walk(self, speed: float, direction: Direction, duration=0.0):
+        if (not (direction is Direction.FORWARDS or direction is Direction.BACKWARDS)):
+            print("No walking?")
+            raise Exception("Invalid direction for walking")
+
+        speed = speed if direction is Direction.FORWARDS else -speed
+        self.move_velocity(speed, 0, 0, duration)
+
+    #Rotates counterclockwise or clockwise
+    def rotate(self, rot_speed: float, rot_direction: RotationDirection, duration = 0.0):
+        rot_speed = rot_speed if rot_direction is RotationDirection.COUNTERCLOCKWISE else -rot_speed
+        self.move_velocity(0, 0, rot_speed, duration)
 
 
 
