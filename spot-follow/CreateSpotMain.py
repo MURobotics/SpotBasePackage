@@ -1,8 +1,8 @@
 import sys
-import CreateSpot
+import CreateSpot as Create
 
 def main(argv):
-    Spot = CreateSpot.Robot(argv)
+    Spot = Create.Robot(argv)
     try:
         with Spot.keepLeaseAlive():
             Spot.wake()

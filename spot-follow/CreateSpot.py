@@ -19,7 +19,7 @@ from bosdyn.client.robot_command import RobotCommandBuilder, RobotCommandClient,
 class Robot:
     #   -----   Startup commands    -----
 
-    # init() initializes starting values and uses the run() function to connect to spot
+    # __init__() initializes starting values and uses the run() function to connect to spot
     def __init__(self, argv):
         parser = argparse.ArgumentParser()
         bosdyn.client.util.add_common_arguments(parser)
@@ -68,12 +68,8 @@ class Robot:
         assert not self.robot.is_powered_on(), "Robot power off failed."
         self.log("Robot safely powered off.")
 
-    def log(self, info):#, *args="", log_type=0):
+    def log(self, info):
         self.robot.logger.info(info)
-        # if (log_type == 0):
-        #     self.robot.logger.info(info, args)
-        # elif (log_type = 1):
-        #     self.robot.logger.error(info, args)
 
     def err(self, info, *args):
         self.robot.logger.error(info, args)
@@ -84,9 +80,11 @@ class Robot:
     def getLeaseClient(self):
         return self.lease_client
 
+    # keepLeaseAlive() used in try statement around Spot commands. Prevents other users from taking control.
     def keepLeaseAlive(self):
         return bosdyn.client.lease.LeaseKeepAlive(self.lease_client)
 
+    # setDefaultDelay() sets the delay used if none is given in movement commands.
     def setDefaultDelay(self, delay):
         self.default_delay = delay
 
@@ -127,7 +125,7 @@ class Robot:
         )
 
     # x and y are in meters relative to Spot (x is forward)
-    def trajectory(self, x=0.0, y=0.0, heading=0.0, delay=None, duration=0):
+    def trajectory(self, x=0.0, y=0.0, heading=0.0, duration=0, delay=None):
         self.command(
             RobotCommandBuilder().synchro_trajectory_command_in_body_frame(x, y, heading, self.robot.get_frame_tree_snapshot()),
             delay,
