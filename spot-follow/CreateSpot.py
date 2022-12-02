@@ -7,31 +7,17 @@ import bosdyn.client
 import bosdyn.client.lease
 import bosdyn.client.util
 import bosdyn.geometry
-from bosdyn.geometry import EulerZXY
-
-import logging
-
-from bosdyn.client import create_standard_sdk, \
-    RpcError, \
-    lease, \
-    estop, \
-    robot_command, \
-    robot_state, \
-    power, \
-    image, \
-    InvalidRequestError
-
-from bosdyn.client.robot_command import NoTimeSyncError, NotPoweredOnError, RobotCommandBuilder, RobotCommandClient, blocking_stand
+import spotutil as util
 
 from bosdyn.client.image import ImageClient
 from bosdyn.client.robot_command import RobotCommandBuilder, RobotCommandClient, blocking_stand
-
-from SpotUtil import Direction, RotationDirection, get_command_duration, pause
 
 #   [docker-compose build] while connected to wifi to compile
 #   [docker-compose up] while connected to spot to run
 
 class Robot:
+    #   -----   Startup commands    -----
+
     # init() initializes starting values and uses the run() function to connect to spot
     def __init__(self, argv):
         parser = argparse.ArgumentParser()
@@ -59,9 +45,11 @@ class Robot:
         self.lease_client = self.robot.ensure_client(bosdyn.client.lease.LeaseClient.default_service_name)
         self.lease = self.lease_client.acquire()
 
+
     # wake() powers on the robot and causes it to stand
     # wake() must be run before any other commands
     def wake(self):
+        self.default_delay = 3
         self.log("Powering on robot... This may take several seconds.")
         self.robot.power_on(timeout_sec=20)
         assert self.robot.is_powered_on(), "Robot power on failed."
@@ -75,9 +63,9 @@ class Robot:
     # sleep() causes the robot to power off.
     # run sleep() at the end of every program
     def sleep(self):
-            self.robot.power_off(cut_immediately=False, timeout_sec=20)
-            assert not self.robot.is_powered_on(), "Robot power off failed."
-            self.log("Robot safely powered off.")
+        self.robot.power_off(cut_immediately=False, timeout_sec=20)
+        assert not self.robot.is_powered_on(), "Robot power off failed."
+        self.log("Robot safely powered off.")
 
     def log(self, info):#, *args="", log_type=0):
         self.robot.logger.info(info)
@@ -89,9 +77,6 @@ class Robot:
     def err(self, info, *args):
         self.robot.logger.error(info, args)
 
-    def getCommandClient(self):
-        return self.command_client
-
     def getLease(self):
         return self.lease_client.return_lease(self.lease)
 
@@ -101,107 +86,52 @@ class Robot:
     def keepLeaseAlive(self):
         return bosdyn.client.lease.LeaseKeepAlive(self.lease_client)
 
+    def setDefaultDelay(self, delay):
+        self.default_delay = delay
+
     #   -----   Movement Commands   -----
 
-    #This functions runs all commands
-    def execute_command(self, cmd, time=None):
-        print("Running Command")
-        try:
-            print(cmd)
-            self.robot.getCommandClient().robot_command(cmd, time)
-        except RpcError:
-            logging.error("Problem communicating with the Spot")
-        except InvalidRequestError:
-            logging.error("Invalid request")
-        except NoTimeSyncError:
-            logging.error("It's been too long since last time-sync")
-        except NotPoweredOnError:
-            logging.error("Engines are not powered")
-        
-        pause(3)
+    def command(self, cmd, delay=None, duration=None):
+        self.command_client.robot_command(cmd, duration)
+        self.delay(delay);
+
+    # delay() is delay between commands. Defaults to default_delay value [set with setDefaultDelay(). default is 3]
+    def delay(self, delay=None):
+        if (delay is None): 
+            delay = self.default_delay
+        time.sleep(delay)
 
     # stand() causes the robot to stand at a given height
     # height is in meters
-    def stand(self, height = 0.0) -> None:
-        self.execute_command(
-            RobotCommandBuilder.synchro_stand_command(body_height=height)
+    def stand(self, height, delay=None):
+        self.command(
+            RobotCommandBuilder.synchro_stand_command(body_height=height),
+            delay    
         )
 
-    #sit() causes the robot to sit
-    def sit(self) -> None:
-        self.execute_command(
-            RobotCommandBuilder.synchro_sit_command()
+    def sit(self, delay=None):
+        self.command(
+            RobotCommandBuilder.synchro_sit_command(),
+            delay
         )
-
-    #Changes the orientation of the robot with respect to its geometric center
-    #Also needs a height as it is run in the stand command
-    def rotate_body(self, height = 0.0, yaw=0.0, roll=0.0, pitch=0.0) -> None:
-        self.execute_command(
-            RobotCommandBuilder.synchro_sit_command(
-                body_height = height,
-                footprint_R_body = EulerZXY(yaw=yaw, roll=roll, pitch=pitch)
-            )
-        )
-    
-    #Runs a synchro velocity command
-    def move_velocity(self, v_x=0.0, v_y=0.0, v_rot=0.0, duration=0.0) -> None:
-        print(f"velocity {v_y}")
-        self.execute_command(
-            RobotCommandBuilder.synchro_velocity_command(
-                v_x=v_x,
-                v_y=v_y,
-                v_rot=v_rot
+    # pose_body() twists the robot's torso without moving the legs
+    # yaw, roll, and pitch are measured in radians
+    def pose_body(self, yaw=0.0, roll=0.0, pitch=0.0, delay=None):
+        self.command(
+            RobotCommandBuilder.synchro_stand_command(
+                footprint_R_body = bosdyn.geometry.EulerZXY(yaw=yaw, roll=roll, pitch=pitch)
             ),
-            get_command_duration(duration)
-        )
-    
-    #Runs a synchro trajectory command
-    #heading in radians, postion relative to robot frame
-    def move_position(self, x_pos=0.0, y_pos=0.0, heading=0.0, duration=0.0) -> None:
-        self.execute_command(
-            RobotCommandBuilder.synchro_trajectory_command_in_body_frame(
-                goal_x_rt_body = x_pos, 
-                goal_y_rt_body = y_pos, 
-                goal_heading_rt_body = heading
-            ),
-            get_command_duration(duration)
+            delay
         )
 
-    #Given an 2d array of positions in the format [x_pos, y_pos, heading, duration]
-    #the robot will go through those points
-    def move_on_path(self, positions : float = None):
-        for position in positions:
-            self.execute_command(
-            RobotCommandBuilder.synchro_trajectory_command_in_body_frame(
-                goal_x_rt_body = position[0], 
-                goal_y_rt_body = position[1], 
-                goal_heading_rt_body = position[2]
-            ),
-            get_command_duration(position[3])
+    # x and y are in meters relative to Spot (x is forward)
+    def trajectory(self, x=0.0, y=0.0, heading=0.0, delay=None, duration=0):
+        self.command(
+            RobotCommandBuilder().synchro_trajectory_command_in_body_frame(x, y, heading, self.robot.get_frame_tree_snapshot()),
+            delay,
+            util.get_command_duration(duration)
         )
 
 
-    #Moves left or right
-    def strafe(self, speed: float, direction: Direction, duration=0.0) -> None:
-        if (not (direction is Direction.LEFT or direction is Direction.RIGHT)):
-            print("No strafing?")
-            raise Exception("Invalid direction for strafing")
 
-        speed = speed if direction is Direction.LEFT else -speed
-        self.move_velocity(0, speed, 0, duration)
 
-    #Moves forwards or backwards
-    def walk(self, speed: float, direction: Direction, duration=0.0) -> None:
-        if (not (direction is Direction.FORWARDS or direction is Direction.BACKWARDS)):
-            print("No walking?")
-            raise Exception("Invalid direction for walking")
-
-        speed = speed if direction is Direction.FORWARDS else -speed
-        self.move_velocity(speed, 0, 0, duration)
-
-    #Rotates counterclockwise or clockwise
-    def rotate(self, rot_speed: float, rot_direction: RotationDirection, duration = 0.0) -> None:
-        rot_speed = rot_speed if rot_direction is RotationDirection.COUNTERCLOCKWISE else -rot_speed
-        self.move_velocity(0, 0, rot_speed, duration)
-
-    
