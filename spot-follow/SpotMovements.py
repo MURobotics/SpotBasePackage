@@ -18,9 +18,14 @@ from bosdyn.client import create_standard_sdk, \
     robot_state, \
     power, \
     image, \
-    InvalidRequestError
+    InvalidRequestError, \
+    frame_helpers, \
+    math_helpers
 
 from bosdyn.client.robot_command import NoTimeSyncError, NotPoweredOnError, RobotCommandBuilder, RobotCommandClient, blocking_stand
+
+from bosdyn.client.robot_command import RobotCommandBuilder, RobotCommandClient
+from bosdyn.client.robot_state import RobotStateClient
 
 from SpotUtil import *
 from CreateSpot import Robot
@@ -51,6 +56,7 @@ class SpotMovement:
         self.execute_command(
             RobotCommandBuilder.synchro_stand_command(body_height=height)
         )
+    
     #Runs a synchro velocity command
     def move_velocity(self, v_x=0.0, v_y=0.0, v_rot=0.0, duration=0.0):
         print(f"velocity {v_y}")
@@ -97,5 +103,29 @@ class SpotMovement:
     def rotate(self, rot_speed: float, rot_direction: RotationDirection, duration = 0.0):
         rot_speed = rot_speed if rot_direction is RotationDirection.COUNTERCLOCKWISE else -rot_speed
         self.move_velocity(0, 0, rot_speed, duration)
-    
+
+    def getRobotState(self):
+        return self.robot.ensure_client(RobotStateClient.default_service_name).get_robot_state()
+
+    def getBodyPosition(self):
+        return frame_helpers.get_se2_a_tform_b(self.getRobotState().kinematic_state.transform_snapshot,
+                                                frame_helpers.VISION_FRAME_NAME,
+                                                frame_helpers.GRAV_ALIGNED_BODY_FRAME_NAME)
+
+    def stance(self, x_offset: float, y_offset: float):
+        body_state = self.getBodyPosition()
+        pos_fl_rt_vision = body_state * math_helpers.SE2Pose(x_offset, y_offset, 0)
+        pos_fr_rt_vision = body_state * math_helpers.SE2Pose(x_offset, -y_offset, 0)
+        pos_hl_rt_vision = body_state * math_helpers.SE2Pose(-x_offset, y_offset, 0)
+        pos_hr_rt_vision = body_state * math_helpers.SE2Pose(-x_offset, -y_offset, 0)
+
+        self.execute_command(
+            RobotCommandBuilder.stance_command(
+                frame_helpers.VISION_FRAME_NAME, 
+                pos_fl_rt_vision.position, 
+                pos_fr_rt_vision.position,
+                pos_hl_rt_vision.position, 
+                pos_hr_rt_vision.position            
+            )
+        )
     

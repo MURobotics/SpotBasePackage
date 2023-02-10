@@ -10,6 +10,8 @@ import bosdyn.geometry
 import SpotUtil as util
 from SpotUtil import Direction, RotationDirection
 
+from bosdyn.client import frame_helpers, math_helpers
+from bosdyn.client.robot_state import RobotStateClient
 from bosdyn.client.image import ImageClient
 from bosdyn.client.robot_command import RobotCommandBuilder, RobotCommandClient, blocking_stand
 
@@ -179,6 +181,31 @@ class Robot:
         rot_speed = rot_speed if rot_direction is RotationDirection.COUNTERCLOCKWISE else -rot_speed
         self.move_velocity(0, 0, rot_speed, duration)
 
+    def getRobotState(self):
+        return self.robot.ensure_client(RobotStateClient.default_service_name).get_robot_state()
 
+    def getBodyPosition(self):
+        return frame_helpers.get_se2_a_tform_b(self.getRobotState().kinematic_state.transforms_snapshot,
+                                                frame_helpers.VISION_FRAME_NAME,
+                                                frame_helpers.GRAV_ALIGNED_BODY_FRAME_NAME)
+
+    def stance(self, x_offset: float, y_offset: float):
+        body_state = self.getBodyPosition()
+        pos_fl_rt_vision = body_state * math_helpers.SE2Pose(x_offset, y_offset, 0)
+        pos_fr_rt_vision = body_state * math_helpers.SE2Pose(x_offset, -y_offset, 0)
+        pos_hl_rt_vision = body_state * math_helpers.SE2Pose(-x_offset, y_offset, 0)
+        pos_hr_rt_vision = body_state * math_helpers.SE2Pose(-x_offset, -y_offset, 0)
+
+        self.command(
+            RobotCommandBuilder.stance_command(
+                frame_helpers.VISION_FRAME_NAME, 
+                pos_fl_rt_vision.position, 
+                pos_fr_rt_vision.position,
+                pos_hl_rt_vision.position, 
+                pos_hr_rt_vision.position            
+            ),
+            delay = 1
+        )
+    
 
 

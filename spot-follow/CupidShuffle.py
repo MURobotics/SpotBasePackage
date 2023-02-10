@@ -10,13 +10,13 @@ def dance(robot : Robot) -> None:
     #print(f"3, {util.get_command_duration(3.0)}")
     dance_step(robot, Direction.RIGHT, 4, 3.0)
     dance_step(robot, Direction.LEFT, 4, 3.0)
-    dance_spin(robot, 90.0, 4.0)
+    dance_spin(robot, 90.0)
 
     print("Dancing sequence finished")
 
 #Given a direction, it will make a certain number of steps in that direction 
 #in a given amount of timme
-def dance_step(robot : Robot, direction : Direction, steps : int, duration : float) -> None:
+def dance_step(robot : Robot, direction : Direction, steps : int, duration = 0.0) -> None:
     print(f"Moving {direction.name}")
 
     #ideally, this loop would make spot go at a speed that
