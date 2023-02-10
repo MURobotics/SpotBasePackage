@@ -184,11 +184,13 @@ class Robot:
     def getRobotState(self):
         return self.robot.ensure_client(RobotStateClient.default_service_name).get_robot_state()
 
+    #Helper function for stance
     def getBodyPosition(self):
         return frame_helpers.get_se2_a_tform_b(self.getRobotState().kinematic_state.transforms_snapshot,
                                                 frame_helpers.VISION_FRAME_NAME,
                                                 frame_helpers.GRAV_ALIGNED_BODY_FRAME_NAME)
 
+    #x_offset should be between .2 and .5; y_offset should be between .1 and .4
     def stance(self, x_offset: float, y_offset: float):
         body_state = self.getBodyPosition()
         pos_fl_rt_vision = body_state * math_helpers.SE2Pose(x_offset, y_offset, 0)
@@ -196,16 +198,18 @@ class Robot:
         pos_hl_rt_vision = body_state * math_helpers.SE2Pose(-x_offset, y_offset, 0)
         pos_hr_rt_vision = body_state * math_helpers.SE2Pose(-x_offset, -y_offset, 0)
 
-        self.command(
-            RobotCommandBuilder.stance_command(
+        stance_cmd = RobotCommandBuilder.stance_command(
                 frame_helpers.VISION_FRAME_NAME, 
                 pos_fl_rt_vision.position, 
                 pos_fr_rt_vision.position,
                 pos_hl_rt_vision.position, 
                 pos_hr_rt_vision.position            
-            ),
-            delay = 1
-        )
+            )
+
+        stance_cmd.synchronized_command.mobility_command.stance_request.end_time.CopyFrom(
+                   self.robot.time_sync.robot_timestamp_from_local_secs(util.get_command_duration(5)))
+
+        self.command(stance_cmd, delay = 1)
     
 
 
