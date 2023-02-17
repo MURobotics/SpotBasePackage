@@ -21,14 +21,14 @@ from bosdyn.client.robot_command import RobotCommandBuilder, RobotCommandClient,
 import sys
 import CreateSpot
 from CupidShuffle import dance
+from sitAndStandButton import make_window
 
 def main(argv):
     Spot = CreateSpot.Robot(argv)
     try:
         with Spot.keepLeaseAlive():
             Spot.wake()
-            #dance(Spot)
-            Spot.stance(.3,.3)
+            make_window()
             Spot.sleep()
     finally:
         Spot.getLease()
