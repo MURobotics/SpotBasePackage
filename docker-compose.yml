@@ -6,6 +6,13 @@ services:
       dockerfile: Dockerfile
       context: ./spot-follow
     env_file: secrets/spot_account.env
+    environment:
+      - DISPLAY=$DISPLAY
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./app:/app
+    ports:
+      - 8888:80
     #platform: linux/amd64
     stdin_open: true # docker run -i
     tty: true # docker run -t
