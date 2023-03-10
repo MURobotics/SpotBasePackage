@@ -1,3 +1,5 @@
+#Make sure you run the networkconfig.bash before attempting to run the code
+
 version: '3'
 
 services:
