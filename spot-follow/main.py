@@ -27,8 +27,8 @@ def main(argv):
     try:
         with Spot.keepLeaseAlive():
             Spot.wake()
-            #dance(Spot)
-            Spot.stance(.3,.3)
+            dance(Spot)
+            #Spot.stance(.3,.3)
             Spot.sleep()
     finally:
         Spot.getLease()

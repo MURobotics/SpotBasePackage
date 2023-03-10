@@ -191,7 +191,7 @@ class Robot:
                                                 frame_helpers.GRAV_ALIGNED_BODY_FRAME_NAME)
 
     #x_offset should be between .2 and .5; y_offset should be between .1 and .4
-    def stance(self, x_offset: float, y_offset: float):
+    def stance(self, x_offset: float, y_offset: float) -> None:
         body_state = self.getBodyPosition()
         pos_fl_rt_vision = body_state * math_helpers.SE2Pose(x_offset, y_offset, 0)
         pos_fr_rt_vision = body_state * math_helpers.SE2Pose(x_offset, -y_offset, 0)
