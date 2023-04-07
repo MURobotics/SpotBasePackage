@@ -1,9 +1,16 @@
 # Import the required libraries
 from tkinter import *
 from time import sleep
+import os
+import sys
 # Create an instance of tkinter frame or window
 
 def make_window():
+
+    if os.environ.get('DISPLAY','') == '':
+        print('no display found. Using :0:0')
+        os.environ.__setitem__('DISPLAY', ':0:0')
+
     win=Tk()
 
     # Set the size of the tkinter window

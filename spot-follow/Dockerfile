@@ -11,6 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 # Copy over the source code into the WORKDIR (/usr/src/app)
+RUN apt-get update -y && apt-get install x11-xserver-utils -y
 
 RUN chmod +x launch.sh
 # Final run command to allow a bash script file to have execute permission on the container
