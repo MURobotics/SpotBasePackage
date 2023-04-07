@@ -28,8 +28,6 @@ from SpotUtil import *
 from CreateSpot import Robot
 from SpotMovements import *
 
-time.sleep(30)
-
 HOST = ""  # Standard loopback interface address (localhost)
 PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
 
