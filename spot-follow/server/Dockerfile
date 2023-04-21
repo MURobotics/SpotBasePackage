@@ -15,5 +15,5 @@ RUN apt-get update -y && apt-get install x11-xserver-utils -y
 
 RUN chmod +x launch.sh
 # Final run command to allow a bash script file to have execute permission on the container
+
 ENTRYPOINT [ "./launch.sh" ]
-# Default command that will run ALWAYS when the container has started

@@ -3,11 +3,12 @@
 version: '3'
 
 services:
-  spot-follow:
+  server:
     build:
       dockerfile: Dockerfile
-      context: ./spot-follow
+      context: ./spot-follow/server
     env_file: secrets/spot_account.env
+    #network_mode: host
     environment:
       - DISPLAY=$DISPLAY
     volumes:
@@ -18,3 +19,21 @@ services:
     #platform: linux/amd64
     stdin_open: true # docker run -i
     tty: true # docker run -t
+    networks: 
+     - spot-net
+    ports:
+     - "65432:65432"
+
+  client:
+    build:
+      dockerfile: Dockerfile
+      context: ./spot-follow/client
+    env_file: secrets/spot_account.env
+    networks: 
+     - spot-net
+    ports:
+     - "65433:65432"
+  
+networks:
+  spot-net:
+    driver: "bridge"

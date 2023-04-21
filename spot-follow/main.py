@@ -23,6 +23,7 @@ from bosdyn.client.robot_command import RobotCommandBuilder, RobotCommandClient,
 import sys
 from CreateSpot import Robot
 from CupidShuffle import dance
+from sitAndStandButton import make_window
 
 def make_window(robot : Robot) -> None:
     win = Tk()
@@ -48,6 +49,17 @@ def make_window(robot : Robot) -> None:
         win.update()
 
 def main(argv):
+    # Spot = CreateSpot.Robot(argv)
+    # try:
+    #     with Spot.keepLeaseAlive():
+    #         Spot.wake()
+    #         make_window()
+    #         Spot.sleep()
+    # finally:
+    #     Spot.getLease()
+    start_server()
+    while(True):
+        continue
     Spot = Robot(argv)
     try:
         with Spot.keepLeaseAlive():
