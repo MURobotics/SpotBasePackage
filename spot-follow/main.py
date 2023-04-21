@@ -32,7 +32,7 @@ def main(argv):
     #         Spot.sleep()
     # finally:
     #     Spot.getLease()
-    make_window()
+    start_server()
     while(True):
         continue
 

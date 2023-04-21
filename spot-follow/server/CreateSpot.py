@@ -7,8 +7,8 @@ import bosdyn.client
 import bosdyn.client.lease
 import bosdyn.client.util
 import bosdyn.geometry
-import spotutil as util
-from spotutil import Direction, RotationDirection
+import SpotUtil as util
+from SpotUtil import Direction, RotationDirection
 
 from bosdyn.client import frame_helpers, math_helpers
 from bosdyn.client.robot_state import RobotStateClient
