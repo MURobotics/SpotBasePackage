@@ -1,14 +1,12 @@
-import sys
-import CreateSpot as Create
+import sys, VoiceCommands as VC
+from CreateSpot import Robot
 
 def main(argv):
-    Spot = Create.Robot(argv)
+    Spot = Robot(argv)
     try:
         with Spot.keepLeaseAlive():
-            Spot.wake()
-            Spot.stand(0.1)
-            Spot.stand(0.005)
-            Spot.sleep()
+            VC.accept_voice(Spot)
+
     finally:
         Spot.getLease()
 
