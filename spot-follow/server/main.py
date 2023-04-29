@@ -39,12 +39,19 @@ def main(argv):
         with Spot.keepLeaseAlive():
             Spot.wake()
 
+            print('server started')
 
-            HOST = ""  # Standard loopback interface address (localhost)
-            PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
+            # ---- USE THIS BLOCK IF CONNECTING TO A DOCKER CONTAINER -------------
+            # HOST = ""  # Standard loopback interface address (localhost)        |
+            # PORT = 65432  # Port to listen on (non-privileged ports are > 1023) |
+            # ---------------------------------------------------------------------
 
+            # ---- USE THIS BLOCK IF CONNECTING TO CONTAINERLESS CLIENT -------------
+            HOST = '172.17.0.2'  # Docker container IP address                      |
+            PORT = 80  # TCP port to open to allow for communication from localhost |
+            # -----------------------------------------------------------------------
 
-
+            print(f'host: {HOST}')
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.bind((HOST, PORT))
@@ -87,6 +94,7 @@ def main(argv):
             Spot.sleep()
             
     finally:
+        print('server closed')
         Spot.getLease
 
 
