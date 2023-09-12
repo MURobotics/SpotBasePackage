@@ -1,39 +1,12 @@
-#Make sure you run the networkconfig.bash before attempting to run the code
-
 version: '3'
 
 services:
-  server:
+  spot-follow:
     build:
       dockerfile: Dockerfile
-      context: ./spot-follow/server
+      context: ./spot-follow
     env_file: secrets/spot_account.env
-    #network_mode: host
-    environment:
-      - DISPLAY=$DISPLAY
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - ./app:/app
-    ports:
-      - 8888:80
-    #platform: linux/amd64
     stdin_open: true # docker run -i
     tty: true # docker run -t
-    networks: 
-     - spot-net
     ports:
-     - "65432:65432"
-
-  client:
-    build:
-      dockerfile: Dockerfile
-      context: ./spot-follow/client
-    env_file: secrets/spot_account.env
-    networks: 
-     - spot-net
-    ports:
-     - "65433:65432"
-  
-networks:
-  spot-net:
-    driver: "bridge"
+      - "64532:64532"
