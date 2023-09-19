@@ -149,7 +149,7 @@ class Robot:
 
     # standing turn
     # takes degrees and turn duration and rotates spot in place
-    def turn(self, degrees, duration, delay=0):
+    def turn(self, degrees, duration, delay=None):
         self.command(
             RobotCommandBuilder.synchro_velocity_command(v_x=0.0, v_y=0.0, v_rot=util.deg_to_rad(degrees)),
             delay=delay,
