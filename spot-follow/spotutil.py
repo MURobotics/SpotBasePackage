@@ -1,6 +1,7 @@
 
 import time
 from enum import Enum, auto
+from math import pi
 
 #adds time.time() to duration, required for timed commands
 def get_command_duration(duration: float):
@@ -9,6 +10,9 @@ def get_command_duration(duration: float):
 #duration in milliseconds (i think, im not gonna check)
 def pause(duration:float):
     time.sleep(duration)
+
+def deg_to_rad(degrees: float):
+    return degrees * (pi/180)
 
 #Enums for ease of imputting direction into movement commands
 class Direction(Enum):

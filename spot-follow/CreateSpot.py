@@ -147,6 +147,15 @@ class Robot:
             util.get_command_duration(duration)
         )
 
+    # standing turn
+    # takes degrees and turn duration and rotates spot in place
+    def turn(self, degrees, duration, delay=0):
+        self.command(
+            RobotCommandBuilder.synchro_velocity_command(v_x=0.0, v_y=0.0, v_rot=util.deg_to_rad(degrees)),
+            delay=delay,
+            duration=util.get_command_duration(duration)
+        )
+
     # def kick_leg(self, Leg, x=0, y=0, angle=0, delay=None):
 
     # match (Leg):
