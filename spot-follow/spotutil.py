@@ -30,3 +30,10 @@ class Leg(Enum):
     FRONT_RIGHT = auto();
     BACK_LEFT = auto();
     BACK_RIGTH = auto();
+
+class Camera(str, Enum):
+    BACK = 'back_fisheye_image'
+    FRONTLEFT = 'frontleft_fisheye_image'
+    FRONTRIGHT = 'frontright_fisheye_image'
+    LEFT = 'left_fisheye_image'
+    RIGHT = 'right_fisheye_image'

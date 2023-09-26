@@ -15,6 +15,10 @@ from bosdyn.client.robot_command import RobotCommandBuilder, RobotCommandClient,
 from bosdyn.client.math_helpers import Vec2
 from bosdyn.client.robot_state import RobotStateClient
 
+# for image processing
+from PIL import Image
+import io
+
 #   [docker-compose build] while connected to wifi to compile
 #   [docker-compose up] while connected to spot to run
 
@@ -157,13 +161,11 @@ class Robot:
         )
 
     #takes a picture from the inputed camera
-    def takeImage(self, camName, path="./"):
+    def takeImage(self, camName: util.Camera, path="./imgs/"):
         image_client = self.robot.ensure_client(ImageClient.default_service_name)
-        image_response = image_client.get_image_from_sources([camName])
+        image_response = image_client.get_image_from_sources([camName.value])
         image = image_response[0].shot.image
 
-        from PIL import Image
-        import io
         name = "spot-img.jpg"
         if path is not None and os.path.exists(path):
             path = os.path.join(os.getcwd(), path)
@@ -177,6 +179,11 @@ class Robot:
             image.save(name)
         except Exception as exc:
             print("exception thrown saving image. %r", exc)
+
+
+    def selfie(self):
+        self.pose_body(pitch=util.deg_to_rad(-45))
+        self.takeImage(util.Camera.FRONTLEFT)
 
     # def kick_leg(self, Leg, x=0, y=0, angle=0, delay=None):
 
@@ -195,6 +202,8 @@ class Robot:
     #         RobotCommandBuilder.stance_command("this frame", )
     #     )
 
+
+    # does NOT work
     def kick_leg(self):
         #   https://github.com/boston-dynamics/spot-sdk/blob/bb1fda259d2f4af880e6c5e025c512d5642fe502/python/examples/stance/stance_in_place.py#L53
         self.log("Moving legs")
