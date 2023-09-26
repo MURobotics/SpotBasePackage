@@ -156,6 +156,28 @@ class Robot:
             duration=util.get_command_duration(duration)
         )
 
+    #takes a picture from the inputed camera
+    def takeImage(self, camName, path="./"):
+        image_client = self.robot.ensure_client(ImageClient.default_service_name)
+        image_response = image_client.get_image_from_sources([camName])
+        image = image_response[0].shot.image
+
+        from PIL import Image
+        import io
+        name = "spot-img.jpg"
+        if path is not None and os.path.exists(path):
+            path = os.path.join(os.getcwd(), path)
+            name = os.path.join(path, name)
+            print("attempt save image to: {}".format(name))
+        else:
+            print("possibly invalid path, attempting save anyway")
+            print("attempt save image to {}".format(name))
+        try:
+            image = Image.open(io.BytesIO(image.data))
+            image.save(name)
+        except Exception as exc:
+            print("exception thrown saving image. %r", exc)
+
     # def kick_leg(self, Leg, x=0, y=0, angle=0, delay=None):
 
     # match (Leg):
