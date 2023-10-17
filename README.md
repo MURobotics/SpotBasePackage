@@ -10,9 +10,9 @@ For the client, run "docker build -t client ." in the spot-follow/client directo
 
 To set up the network, run "docker network create spot-net"
 
-Run "docker run --rm -it --env-file secrets/spot_account.env --name server --net spot-net server" in the /spot-follow/server directory to start the server
+Run "docker run --rm -it --env-file ./../../secrets/spot_account.env --name server --net spot-net server" in the /spot-follow/server directory to start the server
 
-Run "docker run --rm -it --env-file secrets/spot_account.env --name client --net spot-net client" in the /spot-follow/client directory to start the client
+Run "docker run --rm -it --env-file ./../../secrets/spot_account.env --name client --net spot-net client" in the /spot-follow/client directory to start the client
 
 The server will stop as soon as the client terminates its connection, so to delay this, add a time.sleep() to the end of the client.py
 

@@ -21,8 +21,8 @@ services:
     tty: true # docker run -t
     networks: 
      - spot-net
-    ports:
-     - "65432:65432"
+    #ports:
+    # - "65432:65432"
 
   client:
     build:

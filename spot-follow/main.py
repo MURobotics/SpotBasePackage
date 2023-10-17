@@ -57,7 +57,7 @@ def main(argv):
     #         Spot.sleep()
     # finally:
     #     Spot.getLease()
-    start_server()
+    #start_server()
     while(True):
         continue
     Spot = Robot(argv)
