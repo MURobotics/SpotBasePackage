@@ -19,6 +19,8 @@ from bosdyn.client.robot_state import RobotStateClient
 from PIL import Image
 import io
 
+from facial_recon import face_sender as fr
+
 #   [docker-compose build] while connected to wifi to compile
 #   [docker-compose up] while connected to spot to run
 
@@ -161,12 +163,11 @@ class Robot:
         )
 
     #takes a picture from the inputed camera
-    def takeImage(self, camName: util.Camera, path="./imgs/"):
+    def takeImage(self, camName: util.Camera, path="./imgs/", name="spot-img.jpg"):
         image_client = self.robot.ensure_client(ImageClient.default_service_name)
         image_response = image_client.get_image_from_sources([camName.value])
         image = image_response[0].shot.image
 
-        name = "spot-img.jpg"
         if path is not None and os.path.exists(path):
             path = os.path.join(os.getcwd(), path)
             name = os.path.join(path, name)
@@ -176,14 +177,43 @@ class Robot:
             print("attempt save image to {}".format(name))
         try:
             image = Image.open(io.BytesIO(image.data))
+            image = image.rotate(270)
             image.save(name)
         except Exception as exc:
             print("exception thrown saving image. %r", exc)
 
 
     def selfie(self):
-        self.pose_body(pitch=util.deg_to_rad(-45))
-        self.takeImage(util.Camera.FRONTLEFT)
+        pitch = 0
+        self.pose_body(pitch=util.deg_to_rad(pitch))
+        trys = 0
+        while (True):
+            self.takeImage(camName=util.Camera.FRONTLEFT, name="temp-img.jpg")
+            val = fr.find_face()
+            if val == fr.FacePos.MOVEUP:
+                if (pitch < -60):
+                    self.log("Face is too high")
+                    break;
+                self.log("Moving up")
+                pitch = pitch - 5
+            elif val == fr.FacePos.NOFACE and trys < 5:
+                self.log("No face but moving up")
+                pitch = pitch - 10
+                trys += 1
+            elif val == fr.FacePos.MOVEDOWN:
+                self.log("Moving down")
+                pitch = pitch + 5
+            elif val == fr.FacePos.CENTERED:
+                self.log("Face Centered ending process")
+                break
+            else:
+                self.log("Nothing happened")
+                break;
+            self.pose_body(pitch=util.deg_to_rad(pitch))
+
+
+
+
 
     # def kick_leg(self, Leg, x=0, y=0, angle=0, delay=None):
 

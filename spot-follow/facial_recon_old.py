@@ -1,46 +1,78 @@
+import cv2 as cv
+from enum import Enum, auto
+
+
+class FacePos(Enum):
+    MOVEUP = auto()
+    MOVEDOWN = auto()
+    NOFACE = auto()
+    CENTERED = auto()
+
+
+def find_face(image):
+    # Read image from your local file system
+    original_image = cv.imread(image)
+
+    # Convert color image to grayscale for Viola-Jones
+    grayscale_image = cv.cvtColor(original_image, cv.COLOR_BGR2GRAY)
+
+    center = grayscale_image.shape[0] / 2
+    # print(height / 2)
+    # print(center)
+
+    # Load the classifier and create a cascade object for face detection
+    face_cascade = cv.CascadeClassifier('haarcascade_frontalface_default.xml')
+
+    detected_faces = face_cascade.detectMultiScale(grayscale_image)
+
+
+    # get center point of square and detect distance from center of image
+    # raise or lower spot angle until square-center is within certain threshhold of image center
+
+    if len(detected_faces) == 0:
+        return FacePos.NOFACE;
+    else:
+        total_y = 0
+        for (column, row, width, height) in detected_faces:
+            w2 = int(width / 2)
+            # h2 = int(height / 2)
+            # cv.rectangle(
+            #     original_image,
+            #     (column, row),
+            #     (column + w2, row + h2), 
+            #     (0, 255, 0),
+            #     2
+            # )
+            # cv.rectangle(
+            #     original_image,
+            #     (column, row),
+            #     (column + width, row + height),
+            #     (0, 255, 0),
+            #     2
+            # )
+            total_y = total_y + column + w2 #using width rn because image is tilted
+            # print((column + width, row + height))
+        avg_y = total_y / len(detected_faces)
+        if abs(center - avg_y) < 100: return FacePos.CENTERED
+        if avg_y < center: return FacePos.MOVEDOWN
+        if avg_y > center: return FacePos.MOVEUP
+
+    # cv.imshow('Image', original_image)
+    # cv.waitKey(0)
+    # cv.destroyAllWindows()
+
+
+
+    
+# print(find_face('./pic1.png'))
+
+
 import re, socket
 from CreateSpot import Robot
 
 
 HOST = ""
 PORT = 64532
-
-
-def send_image():
-
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_address = (HOST, PORT)
-    sock.connect(server_address)
-
-    try:
-
-        # open image
-        myfile = open(image, 'rb')
-        bytes = myfile.read()
-        size = len(bytes)
-
-        # send image size to server
-        sock.sendall("SIZE %s" % size)
-        answer = sock.recv(4096)
-
-        print('answer = %s' % answer)
-
-        # send image to server
-        if answer == 'GOT SIZE':
-            sock.sendall(bytes)
-
-            # check what server send
-            answer = sock.recv(4096)
-            print('answer = %s' % answer)
-
-            if answer == 'GOT IMAGE' :
-                sock.sendall("BYE BYE ")
-                print('Image successfully send to server')
-
-        myfile.close()
-
-    finally:
-        sock.close()
 
 def accept_voice(Spot: Robot):
     '''

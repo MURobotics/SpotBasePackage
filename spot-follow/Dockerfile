@@ -7,6 +7,8 @@ WORKDIR /usr/src/app
 # Creates a directory to store images taken by the cameras
 RUN mkdir /usr/src/app/imgs
 
+RUN pip install --upgrade pip setuptools wheel
+
 COPY requirements.txt ./
 # Copying requirements.txt from our source folder on the HOST (our) machine into the container at this location RELATIVE to the WORKDIR (i.e /usr/src/app/.)
 RUN pip install --no-cache-dir -r requirements.txt

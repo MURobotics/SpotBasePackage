@@ -4,3 +4,8 @@ bosdyn-choreography-client==3.1.0
 six
 pyqt5
 Pillow
+
+# scikit-learn
+# menpo
+# scikit-image
+# opencv-python-headless

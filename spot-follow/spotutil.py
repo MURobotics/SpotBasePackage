@@ -37,3 +37,9 @@ class Camera(str, Enum):
     FRONTRIGHT = 'frontright_fisheye_image'
     LEFT = 'left_fisheye_image'
     RIGHT = 'right_fisheye_image'
+
+class FacePos(Enum):
+    MOVEUP = auto()
+    MOVEDOWN = auto()
+    NOFACE = auto()
+    CENTERED = auto()
