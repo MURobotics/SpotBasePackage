@@ -1,7 +1,7 @@
 import CreateSpot as spot
 from CreateSpot import Robot
-import spotutil as util
-from spotutil import Direction, RotationDirection
+import SpotUtil as util
+from SpotUtil import Direction, RotationDirection
 
 #The command to perform the Cupid Shuffle
 def dance(robot : Robot) -> None:

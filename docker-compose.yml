@@ -5,8 +5,8 @@ version: '3'
 services:
   server:
     build:
-      dockerfile: Dockerfile
-      context: ./spot-follow/server
+      dockerfile: ./server/Dockerfile
+      context: ./spot-follow
     env_file: secrets/spot_account.env
     #network_mode: host
     environment:
@@ -27,7 +27,7 @@ services:
   client:
     build:
       dockerfile: Dockerfile
-      context: ./spot-follow/client
+      context: ./spot-follow
     env_file: secrets/spot_account.env
     networks: 
      - spot-net

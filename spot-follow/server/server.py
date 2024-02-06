@@ -30,11 +30,11 @@ from bosdyn.client.robot_state import RobotStateClient
 
 from SpotUtil import *
 from CreateSpot import Robot
-from SpotMovements import *
 
 def main(argv):
 
     Spot = Robot(argv)
+    position = [0,0,0] 
     try:
         with Spot.keepLeaseAlive():
             Spot.wake()
@@ -89,13 +89,28 @@ def main(argv):
 
                             Spot.rotate(float(data_arr[1]), rotation_direction, float(data_arr[3]))
 
+                        elif data_arr[0] == "headtilt":
+                            print('head tilt')
+                            Spot.head_up(float(data_arr[1]), float(data_arr[2]))
+
+                        elif data_arr[0] == "gmove":
+                            print('global point movement')
+                            num_points = int(data_arr[1])
+                            point_queue = []
+
+                            for n in range(num_points):
+                                point_queue.append([float(data_arr[3*n+2]), float(data_arr[3*n+3]), float(data_arr[3*n+4])])
+
+                            x, y, w = Spot.global_point_movement(point_queue)  
+                            position[0] += x; position[1] +=y; position[0] += w
+
                         conn.sendall(data)
 
             Spot.sleep()
             
     finally:
         print('server closed')
-        Spot.getLease
+        Spot.getLease()
 
 
 if __name__ == '__main__':

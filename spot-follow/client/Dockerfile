@@ -6,4 +6,4 @@ WORKDIR /usr/src/app
 
 COPY . .
 
-ENTRYPOINT [ "./launch.sh" ]
+ENTRYPOINT [ "./client/launch.sh" ]

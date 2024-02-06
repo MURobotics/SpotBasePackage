@@ -2,4 +2,5 @@ bosdyn-client==3.1.0
 bosdyn-mission==3.1.0
 bosdyn-choreography-client==3.1.0
 six
+pillow
 pyqt5
