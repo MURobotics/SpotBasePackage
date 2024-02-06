@@ -1,5 +1,7 @@
 import sys
-sys.path.append("/Users/jayedson/Library/CloudStorage/OneDrive-UniversityofMissouri/Fall2023/SPOT Research/Autonomy/Clientless/SpotBasePackage/spot-follow")
+
+# sys.path.append("/Users/jayedson/Documents/SPOT Research/Autonomy/Clientless/SpotBasePackage/spot-follow")
+sys.path.append('..')
 import socket
 import random
 import cv2 as cv
