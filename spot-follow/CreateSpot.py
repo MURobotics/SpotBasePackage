@@ -3,20 +3,20 @@ import argparse
 import sys
 import time
 import os
-import bosdyn.client
-import bosdyn.client.lease
-import bosdyn.client.util
-import bosdyn.geometry
+import bosdyn.client            # type: ignore
+import bosdyn.client.lease      # type: ignore
+import bosdyn.client.util       # type: ignore
+import bosdyn.geometry          # type: ignore
 import spotutil as util
 
-from bosdyn.client import frame_helpers, math_helpers
-from bosdyn.client.image import ImageClient
-from bosdyn.client.robot_command import RobotCommandBuilder, RobotCommandClient, blocking_stand
-from bosdyn.client.math_helpers import Vec2
-from bosdyn.client.robot_state import RobotStateClient
+from bosdyn.client import frame_helpers, math_helpers                                               # type: ignore
+from bosdyn.client.image import ImageClient                                                         # type: ignore
+from bosdyn.client.robot_command import RobotCommandBuilder, RobotCommandClient, blocking_stand     # type: ignore
+from bosdyn.client.math_helpers import Vec2                                                         # type: ignore
+from bosdyn.client.robot_state import RobotStateClient                                              # type: ignore
 
 # for image processing
-from PIL import Image
+from PIL import Image           # type: ignore
 import io
 
 from facial_recon import face_sender as fr
@@ -180,14 +180,13 @@ class Robot:
             image = image.rotate(270)
             image.save(name)
         except Exception as exc:
-            print("exception thrown saving image. %r", exc)
-
+            print(f"exception thrown saving image. {exc}")
 
     def selfie(self):
         pitch = 0
         self.pose_body(pitch=util.deg_to_rad(pitch))
         trys = 0
-        while (True):
+        while True:
             self.takeImage(camName=util.Camera.FRONTLEFT, name="temp-img.jpg")
             val = fr.find_face()
             if val == fr.FacePos.MOVEUP:
@@ -210,55 +209,3 @@ class Robot:
                 self.log("Nothing happened")
                 break;
             self.pose_body(pitch=util.deg_to_rad(pitch))
-
-
-
-
-
-    # def kick_leg(self, Leg, x=0, y=0, angle=0, delay=None):
-
-    # match (Leg):
-    #     case Leg.FRONT_LEFT:
-    #         pos_fl_rt_vision = vo_T_body * math_helpers.SE2Pose(x_offset, y_offset, 0)
-    #     case Leg.FRONT_RIGHT:
-    #         pos_fr_rt_vision = vo_T_body * math_helpers.SE2Pose(x_offset, -y_offset, 0)
-    #     case Leg.BACK_LEFT:
-    #         pos_hl_rt_vision = vo_T_body * math_helpers.SE2Pose(-x_offset, y_offset, 0)
-    #     case Leg.BACK_RIGHT:
-    #         pos_hr_rt_vision = vo_T_body * math_helpers.SE2Pose(-x_offset, -y_offset, 0)
-
-
-    #     self.command(
-    #         RobotCommandBuilder.stance_command("this frame", )
-    #     )
-
-
-    # does NOT work
-    def kick_leg(self):
-        #   https://github.com/boston-dynamics/spot-sdk/blob/bb1fda259d2f4af880e6c5e025c512d5642fe502/python/examples/stance/stance_in_place.py#L53
-        self.log("Moving legs")
-        x_offset = self.config.x_offset
-        y_offset = self.config.y_offset
-
-        vo_T_body = frame_helpers.get_se2_a_tform_b(
-            self.state.kinematic_state.transforms_snapshot,
-            frame_helpers.VISION_FRAME_NAME,
-            frame_helpers.GRAV_ALIGNED_BODY_FRAME_NAME
-        )
-        pos_fl_rt_vision = vo_T_body * math_helpers.SE2Pose(x_offset, y_offset, 2)
-        pos_fr_rt_vision = vo_T_body * math_helpers.SE2Pose(x_offset, -y_offset, 0)
-        pos_hl_rt_vision = vo_T_body * math_helpers.SE2Pose(-x_offset, y_offset, 0)
-        pos_hr_rt_vision = vo_T_body * math_helpers.SE2Pose(-x_offset, -y_offset, 0)
-
-        self.command(
-            RobotCommandBuilder.stance_command(frame_helpers.VISION_FRAME_NAME, pos_fl_rt_vision.position, pos_fr_rt_vision.position,
-            pos_hl_rt_vision.position, pos_hr_rt_vision.position)
-        )
-
-
-
-
-
-
-
-

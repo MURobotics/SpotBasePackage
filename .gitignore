@@ -1,2 +1,6 @@
 secrets/
 server/secrets/
+
+.DS_Store
+__pycache__
+.vscode
