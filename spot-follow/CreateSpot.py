@@ -14,6 +14,9 @@ from bosdyn.client.image import ImageClient
 from bosdyn.client.robot_command import RobotCommandBuilder, RobotCommandClient, blocking_stand
 from bosdyn.client.math_helpers import Vec2
 from bosdyn.client.robot_state import RobotStateClient
+from bosdyn.client.world_object import WorldObjectClient, make_add_world_object_req
+from bosdyn.client.image import ImageClient, depth_image_to_pointcloud
+from bosdyn.client.local_grid import LocalGridClient
 
 # for image processing
 from PIL import Image
@@ -35,6 +38,8 @@ class Robot:
         parser.add_argument('--x-offset', default=0.5, type=float, help='Offset in X for Spot to step')
         parser.add_argument('--y-offset', default=0.4, type=float, help="Offset in Y for Spot to step")
         #end new
+        parser.add_argument('--sdk', default='SpotViz', type=str)
+
         options = parser.parse_args(argv)
         try:
             self.run(options)
@@ -48,7 +53,7 @@ class Robot:
     def run(self, config):
         self.config = config
         bosdyn.client.util.setup_logging(config.verbose)  
-        self.sdk = bosdyn.client.create_standard_sdk('HelloSpotClient')
+        self.sdk = bosdyn.client.create_standard_sdk(config.sdk)
         self.robot = self.sdk.create_robot(config.hostname)
         self.robot.authenticate(config.username, config.password)
         self.robot.time_sync.wait_for_sync()
@@ -104,6 +109,19 @@ class Robot:
     def setDefaultDelay(self, delay):
         self.default_delay = delay
 
+    #   ----   Get Clients    ----
+
+    def getLocalGridClient(self):
+        return self.robot.ensure_client(LocalGridClient.default_service_name)
+    
+    def getRobotStateClient(self):
+        return self.robot.ensure_client(RobotStateClient.default_service_name)
+    
+    def getImageServiceClient(self):
+        return self.robot.ensure_client(ImageClient.default_service_name)
+
+    def getWorldObjectClient(self):
+        return self.robot.ensure_client(WorldObjectClient.default_service_name)
 
     #   -----   Movement Commands   -----
 

@@ -7,6 +7,9 @@ services:
       context: ./spot-follow
     volumes:
       - ./spot-follow/imgs:/usr/src/app/imgs  # connects folder on local machine to folder in container to view images easily
+      - ./vtk-build:/vtk-build
+      - ./transfer:/out
+      - ./src:/src
     env_file: secrets/spot_account.env
     stdin_open: true # docker run -i
     tty: true # docker run -t
