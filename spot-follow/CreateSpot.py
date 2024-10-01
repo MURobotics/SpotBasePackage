@@ -60,7 +60,8 @@ class Robot:
         assert not self.robot.is_estopped(), "Robot is estopped. Please use an external E-Stop client, " \
                                         "such as the estop SDK example, to configure E-Stop."  
         self.lease_client = self.robot.ensure_client(bosdyn.client.lease.LeaseClient.default_service_name)
-        self.lease = self.lease_client.acquire()
+        self.lease = self.lease_client.take()
+        print("Lease", self.lease)
 
         #NEW
         self.state = self.robot.ensure_client(RobotStateClient.default_service_name).get_robot_state()
