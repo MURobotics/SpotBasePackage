@@ -31,6 +31,13 @@ class Leg(Enum):
     BACK_LEFT = auto()
     BACK_RIGTH = auto()
 
+#Enums for ease of imputting direction into movement commands
+class Direction(Enum):
+    LEFT = auto()
+    RIGHT = auto()
+    FORWARDS = auto()
+    BACKWARDS = auto()
+
 class Camera(str, Enum):
     BACK = 'back_fisheye_image'
     FRONTLEFT = 'frontleft_fisheye_image'

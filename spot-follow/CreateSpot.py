@@ -170,6 +170,15 @@ class Robot:
             util.get_command_duration(duration)
         )
 
+        #Moves left or right
+    def strafe(self, speed: float, direction: Direction, duration=0.0):
+        if (not (direction is Direction.LEFT or direction is Direction.RIGHT)):
+            print("No strafing?")
+            raise Exception("Invalid direction for strafing")
+
+        speed = speed if direction is Direction.LEFT else -speed
+        self.move_velocity(0, speed, 0, duration)
+
     # standing turn
     # takes degrees and turn duration and rotates spot in place
     def turn(self, degrees, duration, delay=None):
