@@ -1,11 +1,11 @@
 bosdyn-client>=3.1.0
 bosdyn-mission==3.1.0
-bosdyn-choreography-client==3.1.0
+bosdyn-choreography-client>=3.1.0
 six
 pyqt5
 Pillow
 numpy
 vtk
-numpy==1.11.2rc1
+numpy
 scipy==0.18.1
 matplotlib==1.5.3

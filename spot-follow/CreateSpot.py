@@ -173,8 +173,9 @@ class Robot:
     # standing turn
     # takes degrees and turn duration and rotates spot in place
     def turn(self, degrees, duration, delay=None):
+        speed = util.deg_to_rad(degrees) / duration
         self.command(
-            RobotCommandBuilder.synchro_velocity_command(v_x=0.0, v_y=0.0, v_rot=util.deg_to_rad(degrees)),
+            RobotCommandBuilder.synchro_velocity_command(v_x=0.0, v_y=0.0, v_rot=speed),
             delay=delay,
             duration=util.get_command_duration(duration)
         )
@@ -204,45 +205,31 @@ class Robot:
         self.pose_body(pitch=util.deg_to_rad(-45))
         self.takeImage(util.Camera.FRONTLEFT)
 
-    # def kick_leg(self, Leg, x=0, y=0, angle=0, delay=None):
-
-    # match (Leg):
-    #     case Leg.FRONT_LEFT:
-    #         pos_fl_rt_vision = vo_T_body * math_helpers.SE2Pose(x_offset, y_offset, 0)
-    #     case Leg.FRONT_RIGHT:
-    #         pos_fr_rt_vision = vo_T_body * math_helpers.SE2Pose(x_offset, -y_offset, 0)
-    #     case Leg.BACK_LEFT:
-    #         pos_hl_rt_vision = vo_T_body * math_helpers.SE2Pose(-x_offset, y_offset, 0)
-    #     case Leg.BACK_RIGHT:
-    #         pos_hr_rt_vision = vo_T_body * math_helpers.SE2Pose(-x_offset, -y_offset, 0)
-
-
-    #     self.command(
-    #         RobotCommandBuilder.stance_command("this frame", )
-    #     )
-
-
     # does NOT work
-    def kick_leg(self):
+    def pose_in_place(self, x_offset, y_offset):
         #   https://github.com/boston-dynamics/spot-sdk/blob/bb1fda259d2f4af880e6c5e025c512d5642fe502/python/examples/stance/stance_in_place.py#L53
         self.log("Moving legs")
-        x_offset = self.config.x_offset
-        y_offset = self.config.y_offset
 
         vo_T_body = frame_helpers.get_se2_a_tform_b(
             self.state.kinematic_state.transforms_snapshot,
             frame_helpers.VISION_FRAME_NAME,
             frame_helpers.GRAV_ALIGNED_BODY_FRAME_NAME
         )
-        pos_fl_rt_vision = vo_T_body * math_helpers.SE2Pose(x_offset, y_offset, 2)
+        pos_fl_rt_vision = vo_T_body * math_helpers.SE2Pose(x_offset, y_offset, 0)
         pos_fr_rt_vision = vo_T_body * math_helpers.SE2Pose(x_offset, -y_offset, 0)
         pos_hl_rt_vision = vo_T_body * math_helpers.SE2Pose(-x_offset, y_offset, 0)
         pos_hr_rt_vision = vo_T_body * math_helpers.SE2Pose(-x_offset, -y_offset, 0)
+        
+        stance_cmd = RobotCommandBuilder.stance_command(frame_helpers.VISION_FRAME_NAME, 
+                                               pos_fl_rt_vision.position, 
+                                               pos_fr_rt_vision.position,
+                                               pos_hl_rt_vision.position, 
+                                               pos_hr_rt_vision.position
+                                            )
+        stance_cmd.synchronized_command.mobility_command.stance_request.end_time.CopyFrom(
+                self.robot.time_sync.robot_timestamp_from_local_secs(time.time() + 5))
 
-        self.command(
-            RobotCommandBuilder.stance_command(frame_helpers.VISION_FRAME_NAME, pos_fl_rt_vision.position, pos_fr_rt_vision.position,
-            pos_hl_rt_vision.position, pos_hr_rt_vision.position)
-        )
+        self.command(stance_cmd)
 
 
 
