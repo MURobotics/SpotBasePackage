@@ -8,6 +8,7 @@ import bosdyn.client.lease
 import bosdyn.client.util
 import bosdyn.geometry
 import spotutil as util
+from spotutil import Direction
 
 from bosdyn.client import frame_helpers, math_helpers
 from bosdyn.client.image import ImageClient
@@ -182,12 +183,7 @@ class Robot:
     # standing turn
     # takes degrees and turn duration and rotates spot in place
     def turn(self, degrees, duration, delay=None):
-        speed = util.deg_to_rad(degrees) / duration
-        self.command(
-            RobotCommandBuilder.synchro_velocity_command(v_x=0.0, v_y=0.0, v_rot=speed),
-            delay=delay,
-            duration=util.get_command_duration(duration)
-        )
+        self.trajectory(heading = util.deg_to_rad(degrees), duration=duration, delay=delay)
 
     #takes a picture from the inputed camera
     def takeImage(self, camName: util.Camera, path="./imgs/"):
