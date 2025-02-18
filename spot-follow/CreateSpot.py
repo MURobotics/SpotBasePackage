@@ -47,6 +47,7 @@ class Robot:
     # run() connects to the spot robot and sets up time sync
     # If there are issues connecting, ensure the spot_account.env file in the secrets folder is properly formatted with correct credentials
     # run() is run automatically upon initializing the Robot class
+    # If lease is not found, first check username, password, and IP in spot_account.env
     def run(self, config):
         self.config = config
         bosdyn.client.util.setup_logging(config.verbose)  
