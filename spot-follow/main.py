@@ -6,7 +6,6 @@
 
 """Tutorial to show how to use the Boston Dynamics API"""
 from __future__ import print_function
-from tkinter import *
 import os
 import argparse
 import sys
