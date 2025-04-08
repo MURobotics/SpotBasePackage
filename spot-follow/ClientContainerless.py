@@ -22,6 +22,9 @@ def make_window() -> None:
 
     win.geometry("550x350")
 
+    #Image Label
+    image_panel = Label(win)
+
     def sit():
         s.sendall(sitcommand)
         data = s.recv(1024)

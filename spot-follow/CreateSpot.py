@@ -18,8 +18,8 @@ from bosdyn.client.robot_state import RobotStateClient
 from bosdyn.client.frame_helpers import BODY_FRAME_NAME, ODOM_FRAME_NAME, VISION_FRAME_NAME
 
 # for image processing
-from PIL import Image
-import io
+import numpy as np
+import cv2
 
 #   [docker-compose build] while connected to wifi to compile
 #   [docker-compose up] while connected to spot to run
@@ -31,12 +31,13 @@ class Robot:
     def __init__(self, argv):
         parser = argparse.ArgumentParser()
         bosdyn.client.util.add_common_arguments(parser)
+        parser.add_argument('--acquire', default=True, type=bool, help='Acquire the robot lease for control.')
         parser.add_argument('-s', '--save', action='store_true', help='Save the image captured by Spot to the working directory. To chose the save location, use --save_path instead.')
         parser.add_argument('--save-path', default=None, nargs='?', help='Save the image captured by Spot to the provided directory. Invalid path saves to working directory.')
-        #New
+        
         parser.add_argument('--x-offset', default=0.5, type=float, help='Offset in X for Spot to step')
         parser.add_argument('--y-offset', default=0.4, type=float, help="Offset in Y for Spot to step")
-        #end new
+        
         options = parser.parse_args(argv)
         try:
             self.run(options)
@@ -54,14 +55,18 @@ class Robot:
         self.sdk = bosdyn.client.create_standard_sdk('HelloSpotClient')
         self.robot = self.sdk.create_robot(config.hostname)
         self.robot.authenticate(config.username, config.password)
+        self.robot.sync_with_directory()
         self.robot.time_sync.wait_for_sync()
-        assert not self.robot.is_estopped(), "Robot is estopped. Please use an external E-Stop client, " \
-                                        "such as the estop SDK example, to configure E-Stop."  
-        self.lease_client = self.robot.ensure_client(bosdyn.client.lease.LeaseClient.default_service_name)
-        self.lease = self.lease_client.acquire()
+        self.image_client = self.robot.ensure_client(ImageClient.default_service_name)
 
-        #NEW
-        self.state = self.robot.ensure_client(RobotStateClient.default_service_name).get_robot_state()
+        # if the lease will be acquired
+        if config.acquire:
+            assert not self.robot.is_estopped(), "Robot is estopped. Please use an external E-Stop client, " \
+                                            "such as the estop SDK example, to configure E-Stop."  
+            self.lease_client = self.robot.ensure_client(bosdyn.client.lease.LeaseClient.default_service_name)
+            self.lease = self.lease_client.acquire()
+
+            self.state = self.robot.ensure_client(RobotStateClient.default_service_name).get_robot_state()
 
 
     # wake() powers on the robot and causes it to stand
@@ -173,22 +178,37 @@ class Robot:
         )
 
     #takes a picture from the inputed camera
-    def takeImage(self, camName: util.Camera, path="./imgs/"):
-        image_client = self.robot.ensure_client(ImageClient.default_service_name)
-        image_response = image_client.get_image_from_sources([camName.value])
-        image = image_response[0].shot.image
+    def captureImage(self, camName: util.Camera):
+        image_response = self.image_client.get_image_from_sources([camName.value])
 
-        name = "spot-img.jpg"
+        return image_response
+
+    #takes and saves a picture from the inputed camera
+    def saveImage(self, camName: util.Camera, path="imgs/", name = "spot-img.jpg"):
+        image = self.captureImage(camName)
+
+        # Process image before saving
+        dtype = np.uint8
+
+        img = np.frombuffer(image[0].shot.image.data, dtype=dtype)
+        img = cv2.imdecode(img, -1)
+
+        # Approximately rotate the image to level.
+        if image[0].source.name[0:5] == "front":
+            img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+
+        elif image[0].source.name[0:5] == "right":
+            img = cv2.rotate(img, cv2.ROTATE_180)
+
+        name = os.path.join(path, name)
+
         if path is not None and os.path.exists(path):
-            path = os.path.join(os.getcwd(), path)
-            name = os.path.join(path, name)
             print("attempt save image to: {}".format(name))
         else:
-            print("possibly invalid path, attempting save anyway")
+            print(f"{path} is possibly invalid path, attempting save anyway")
             print("attempt save image to {}".format(name))
         try:
-            image = Image.open(io.BytesIO(image.data))
-            image.save(name)
+            cv2.imwrite(name, img)
         except Exception as exc:
             print("exception thrown saving image. %r", exc)
 

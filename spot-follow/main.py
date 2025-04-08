@@ -23,17 +23,19 @@ import sys
 from CreateSpot import Robot
 from bosdyn.client.frame_helpers import BODY_FRAME_NAME, ODOM_FRAME_NAME, VISION_FRAME_NAME
 from CupidShuffle import dance
+from SpotUtil import Camera
 
 def main(argv):
     Spot = Robot(argv)
-    try:
-        with Spot.keepLeaseAlive():
-            Spot.wake()
-            Spot.stand(0.1)
-            Spot.stand(0.005)
-            Spot.sleep()
-    finally:
-        Spot.getLease()
+    
+    # Taking multiple pictures
+
+    counter = 0
+    while True:
+        print(f"Counter = {counter}")
+        Spot.saveImage(Camera.FRONTLEFT, name=f"spot_img_{counter}.jpg")
+        counter += 1
+        time.sleep(0.7)
     
     print("Stopping")
 

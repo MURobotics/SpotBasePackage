@@ -104,6 +104,9 @@ def main(argv):
                             x, y, w = Spot.global_point_movement(point_queue)  
                             position[0] += x; position[1] +=y; position[0] += w
 
+                        elif data_arr[0] == "image":
+                            data = Spot.captureImage()
+
                         conn.sendall(data)
 
             Spot.sleep()
